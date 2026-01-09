@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "The user management service",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "dev": "node src/server.js",
     "format:fix": "prettier . --write",
@@ -30,5 +30,8 @@
       "npm run lint:fix",
       "npm run format:fix"
     ]
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }

@@ -1,14 +1,3 @@
-function Welcome(name: string): string {
-  return `Welcome, ${name}!`
-}
+import { Config } from './config/index.js'
 
-console.log(Welcome('User'))
-
-const user = {
-  name: 'Usman',
-  age: 25,
-  emplloyed: true,
-}
-
-const userName = user['name']
-console.log(`User Name is : ${userName}`)
+console.log(Config.PORT)
