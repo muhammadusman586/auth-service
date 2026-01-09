@@ -16,7 +16,8 @@ export default defineConfig(
       },
     },
     rules: {
-        // "no-console": "warn",
+        "no-console": "off",
+        // "dot-notation": "error"
     }
   },
 );
