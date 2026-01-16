@@ -9,6 +9,7 @@ When setting up Jest with TypeScript in an ES Modules (ESM) project, several con
 ### 1. **ES Modules vs CommonJS**
 
 Your project uses ES Modules (`"type": "module"` in package.json), which means:
+
 - Node.js treats all `.js` files as ES modules
 - You use `import/export` syntax instead of `require()`
 - Jest was originally designed for CommonJS and needs special configuration for ESM
@@ -16,6 +17,7 @@ Your project uses ES Modules (`"type": "module"` in package.json), which means:
 ### 2. **TypeScript Compilation**
 
 Jest cannot directly execute TypeScript files. It needs a transformer to convert:
+
 ```
 TypeScript (.ts) → JavaScript → Test Execution
 ```
@@ -31,16 +33,19 @@ TypeScript's type checker and ESLint need to know about Jest's global functions 
 ### Error 1: "Cannot use import statement outside a module"
 
 **Why it occurred:**
+
 - Jest tried to execute TypeScript files directly
 - Jest didn't have a transformer configured to convert TypeScript to JavaScript
 - Jest didn't know to treat files as ES modules
 
 **Solution:**
+
 ```bash
 npm install --save-dev ts-jest ts-node
 ```
 
 Then configure `jest.config.ts`:
+
 ```typescript
 preset: 'ts-jest',
 extensionsToTreatAsEsm: ['.ts'],
@@ -55,6 +60,7 @@ transform: {
 ```
 
 **What this does:**
+
 - `ts-jest`: Transforms TypeScript files before Jest runs them
 - `extensionsToTreatAsEsm`: Tells Jest to treat `.ts` files as ES modules
 - `useESM: true`: Enables ESM support in ts-jest
@@ -62,39 +68,45 @@ transform: {
 ### Error 2: Experimental VM Modules Required
 
 **Why it occurred:**
+
 - Jest's default test runner doesn't fully support ESM yet
 - Node.js requires experimental flag for ES module support in VM contexts
 
 **Solution:**
 Update package.json test script:
+
 ```json
 "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest"
 ```
 
 **What this does:**
+
 - Enables Node.js experimental VM modules feature
 - Allows Jest to properly load and execute ES modules
 
 ### Error 3: TypeScript Warning - Missing File Extensions
 
 **Error message:**
+
 ```
 Relative import paths need explicit file extensions in ECMAScript imports
 when '--moduleResolution' is 'node16' or 'nodenext'.
 ```
 
 **Why it occurred:**
+
 - TypeScript's `"module": "nodenext"` enforces ESM standards
 - ESM requires explicit file extensions in imports
 - You need to use `.js` extension even for `.ts` files
 
 **Solution:**
+
 ```typescript
 // ❌ Wrong
-import sum from "./src/utilis";
+import sum from './src/utilis'
 
 // ✅ Correct
-import sum from "./src/utilis.js";
+import sum from './src/utilis.js'
 ```
 
 **Important Note:** You write `.js` even though the file is `.ts`. TypeScript will resolve it correctly during compilation.
@@ -102,11 +114,13 @@ import sum from "./src/utilis.js";
 ### Error 4: TypeScript Cannot Find 'test' and 'expect'
 
 **Why it occurred:**
+
 - Jest globals (`test`, `expect`, `describe`, etc.) are injected at runtime
 - TypeScript doesn't know about these unless you include the type definitions
 
 **Solution:**
 Update `tsconfig.json`:
+
 ```json
 {
   "compilerOptions": {
@@ -116,6 +130,7 @@ Update `tsconfig.json`:
 ```
 
 **What this does:**
+
 - Includes `@types/jest` type definitions
 - Tells TypeScript about Jest's global functions
 - Provides autocomplete and type checking for Jest APIs
@@ -123,17 +138,26 @@ Update `tsconfig.json`:
 ### Error 5: ESLint "Unsafe call of error typed value"
 
 **Why it occurred:**
+
 - TypeScript-ESLint's strict rules were enabled
 - Jest globals are dynamically injected, causing type safety warnings
 - ESLint treats test files with same strict rules as production code
 
 **Solution:**
 Update `eslint.config.mjs`:
+
 ```javascript
-ignores: ['dist/', 'node_modules/', 'eslint.config.mjs', '**/*.test.ts', '**/*.spec.ts']
+ignores: [
+  'dist/',
+  'node_modules/',
+  'eslint.config.mjs',
+  '**/*.test.ts',
+  '**/*.spec.ts',
+]
 ```
 
 **What this does:**
+
 - Excludes test files from ESLint checking
 - Common practice since test files have different requirements
 - Prevents false positives from dynamically injected test globals
@@ -141,12 +165,14 @@ ignores: ['dist/', 'node_modules/', 'eslint.config.mjs', '**/*.test.ts', '**/*.s
 ### Error 6: TypeScript rootDir Issue
 
 **Why it occurred:**
+
 - `tsconfig.json` had `"rootDir": "./src"`
 - Test file was at project root, outside the rootDir
 - TypeScript couldn't properly type-check the test file
 
 **Solution:**
 Remove or adjust `rootDir`:
+
 ```json
 {
   "compilerOptions": {
@@ -161,6 +187,7 @@ Remove or adjust `rootDir`:
 ## Complete Configuration Reference
 
 ### package.json
+
 ```json
 {
   "type": "module",
@@ -178,12 +205,13 @@ Remove or adjust `rootDir`:
 ```
 
 ### jest.config.ts
+
 ```typescript
-import type {Config} from 'jest';
+import type { Config } from 'jest'
 
 const config: Config = {
   preset: 'ts-jest',
-  testEnvironment: "node",
+  testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
@@ -197,13 +225,14 @@ const config: Config = {
     ],
   },
   clearMocks: true,
-  coverageProvider: "v8",
-};
+  coverageProvider: 'v8',
+}
 
-export default config;
+export default config
 ```
 
 ### tsconfig.json
+
 ```json
 {
   "compilerOptions": {
@@ -220,6 +249,7 @@ export default config;
 ```
 
 ### eslint.config.mjs
+
 ```javascript
 export default defineConfig(
   {
@@ -234,11 +264,13 @@ export default defineConfig(
 ## Key Concepts to Remember
 
 ### 1. File Extensions in TypeScript ESM
+
 - **Always use `.js` extension** in imports, even for `.ts` files
 - TypeScript resolves `.js` imports to `.ts` source files
 - This is required by ESM specification and TypeScript's `nodenext` module resolution
 
 ### 2. Jest + TypeScript + ESM Stack
+
 ```
 Your Test File (.ts)
     ↓
@@ -252,11 +284,13 @@ Test Results
 ```
 
 ### 3. Type Definitions
+
 - Runtime behavior ≠ TypeScript types
 - Jest injects globals at runtime
 - Need `@types/jest` for TypeScript to understand these globals
 
 ### 4. Configuration Files
+
 - `package.json`: Defines ESM mode and test script
 - `jest.config.ts`: Configures Jest transformation and ESM support
 - `tsconfig.json`: Configures TypeScript compilation and types
@@ -282,29 +316,32 @@ When you encounter Jest/TypeScript issues:
 ## Common Patterns
 
 ### Writing Tests
+
 ```typescript
-import { functionName } from "./module.js"; // Note .js extension
+import { functionName } from './module.js' // Note .js extension
 
 describe('Feature Name', () => {
   test('should do something', () => {
-    expect(functionName(input)).toBe(expected);
-  });
-});
+    expect(functionName(input)).toBe(expected)
+  })
+})
 ```
 
 ### Async Tests
+
 ```typescript
 test('async operation', async () => {
-  const result = await asyncFunction();
-  expect(result).toBeDefined();
-});
+  const result = await asyncFunction()
+  expect(result).toBeDefined()
+})
 ```
 
 ### Mocking
-```typescript
-import { jest } from '@jest/globals'; // For ESM
 
-const mockFn = jest.fn();
+```typescript
+import { jest } from '@jest/globals' // For ESM
+
+const mockFn = jest.fn()
 ```
 
 ---
@@ -312,12 +349,14 @@ const mockFn = jest.fn();
 ## Why This Configuration is Necessary
 
 **Without proper configuration:**
+
 - ❌ Jest can't parse TypeScript
 - ❌ ES modules aren't recognized
 - ❌ Type checking fails
 - ❌ IDE shows errors
 
 **With proper configuration:**
+
 - ✅ Jest transforms TypeScript → JavaScript
 - ✅ ES modules work correctly
 - ✅ Full type safety
@@ -329,12 +368,15 @@ const mockFn = jest.fn();
 ## Alternative Approaches
 
 ### Option 1: Use CommonJS (Simpler but outdated)
+
 Remove `"type": "module"` and use `require()` syntax. Not recommended for new projects.
 
 ### Option 2: Use Vitest (Modern alternative)
+
 Vitest has native ESM and TypeScript support with zero configuration.
 
 ### Option 3: Use tsx for testing
+
 Run tests with `tsx` directly, though you lose Jest's features.
 
 ---
@@ -351,6 +393,7 @@ Run tests with `tsx` directly, though you lose Jest's features.
 ## Summary
 
 The complexity comes from combining three modern technologies:
+
 1. **TypeScript** - Type safety and compilation
 2. **ES Modules** - Modern JavaScript module system
 3. **Jest** - Testing framework designed for CommonJS
